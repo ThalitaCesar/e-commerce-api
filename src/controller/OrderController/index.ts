@@ -71,6 +71,95 @@ export const orderRouter = express.Router()
 
 const orderController = new OrderController()
 
+/**
+ * @swagger
+ * tags:
+ *   name: Order
+ *   description: Pedidos dos usuários
+ */
+
+/**
+ * @swagger
+ * /order/getorderbyuser/{id}:
+ *   get:
+ *     summary: Lista os pedidos de um usuário
+ *     tags: [Order]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Id do usuário
+ *     responses:
+ *       200:
+ *         description: Lista de pedidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Result:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
+ *       401:
+ *         description: Parâmetro id não informado
+ *       500:
+ *         description: Erro interno
+ */
 orderRouter.get('/getorderbyuser/:id', orderController.getOrdersByUser)
+
+/**
+ * @swagger
+ * /order/postorder:
+ *   post:
+ *     summary: Cria um novo pedido
+ *     tags: [Order]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, folder, size, price, user_id]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               folder:
+ *                 type: string
+ *               size:
+ *                 type: string
+ *               price:
+ *                 type: string
+ *               user_id:
+ *                 type: string
+ *     responses:
+ *       202:
+ *         description: Pedido criado com sucesso
+ *       422:
+ *         description: Parâmetros obrigatórios não informados
+ *       500:
+ *         description: Erro interno
+ */
 orderRouter.post('/postorder', orderController.postOrder)
+
+/**
+ * @swagger
+ * /order/deleteorder/{id}:
+ *   delete:
+ *     summary: Exclui um pedido
+ *     tags: [Order]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Pedido excluído com sucesso
+ *       500:
+ *         description: Erro interno
+ */
 orderRouter.delete('/deleteorder/:id', orderController.deleteOrder)

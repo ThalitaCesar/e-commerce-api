@@ -2,6 +2,7 @@
 
 ## Deploy
 * Live API: https://e-commerce-api-3swp.onrender.com/
+* API docs (Swagger): https://e-commerce-api-3swp.onrender.com/api-docs
 
 ## Relevant Information
 * The repository is a Node.js API built with TypeScript and object-oriented programming using the Express framework.

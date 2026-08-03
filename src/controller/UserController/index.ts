@@ -178,13 +178,278 @@ export const userRouter = express.Router()
 
 const userController = new UserController()
 
+/**
+ * @swagger
+ * tags:
+ *   name: User
+ *   description: Cadastro, autenticação e gerenciamento de usuários
+ */
 
+/**
+ * @swagger
+ * /user/profiles:
+ *   get:
+ *     summary: Lista os usuários cadastrados
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: Usuário retornado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Result:
+ *                   $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Erro interno
+ */
 userRouter.get('/profiles', userController.getAllUsers)
+
+/**
+ * @swagger
+ * /user/profile/{id}:
+ *   get:
+ *     summary: Busca um usuário pelo id
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuário encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Parâmetro id não informado
+ *       500:
+ *         description: Erro interno
+ */
 userRouter.get('/profile/:id', userController.getProfileById)
+
+/**
+ * @swagger
+ * /user/userid/{email}:
+ *   get:
+ *     summary: Busca o id de um usuário pelo email
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Id encontrado
+ *       500:
+ *         description: Erro interno
+ */
 userRouter.get('/userid/:email', userController.getIdUserByEmail)
+
+/**
+ * @swagger
+ * /user/profile:
+ *   get:
+ *     summary: Retorna os dados do usuário autenticado
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT do usuário logado
+ *     responses:
+ *       200:
+ *         description: Dados do usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Token não informado
+ *       500:
+ *         description: Erro interno
+ */
 userRouter.get('/profile', userController.getProfile)
+
+/**
+ * @swagger
+ * /user/signup:
+ *   post:
+ *     summary: Cria um novo usuário
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, cpf, data, email, password]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               cpf:
+ *                 type: string
+ *               data:
+ *                 type: string
+ *                 description: Data de nascimento
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [ADMIN, NORMAL]
+ *     responses:
+ *       202:
+ *         description: Usuário criado com sucesso
+ *       500:
+ *         description: Erro de validação ou interno
+ */
 userRouter.post('/signup', userController.signUpUser)
+
+/**
+ * @swagger
+ * /user/login:
+ *   post:
+ *     summary: Autentica um usuário e retorna um token JWT
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login realizado com sucesso, retorna o token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   description: Token JWT
+ *       500:
+ *         description: Credenciais inválidas ou erro interno
+ */
 userRouter.post('/login', userController.loginUser)
+
+/**
+ * @swagger
+ * /user/updateuser:
+ *   put:
+ *     summary: Atualiza os dados do usuário
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [id]
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               cpf:
+ *                 type: string
+ *               data:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Usuário atualizado com sucesso
+ *       422:
+ *         description: Parâmetro id não informado
+ *       500:
+ *         description: Erro interno
+ */
 userRouter.put('/updateuser',userController.updateProfile)
+
+/**
+ * @swagger
+ * /user/updatepassword/{id}:
+ *   put:
+ *     summary: Atualiza a senha do usuário
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [id, password]
+ *             properties:
+ *               id:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Senha atualizada com sucesso
+ *       422:
+ *         description: Parâmetros obrigatórios não informados
+ *       500:
+ *         description: Erro interno
+ */
 userRouter.put('/updatepassword/:id',userController.updatePassword)
+
+/**
+ * @swagger
+ * /user/deleteuser/{id}:
+ *   delete:
+ *     summary: Exclui a conta do usuário
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Conta excluída com sucesso
+ *       422:
+ *         description: Token não informado
+ *       500:
+ *         description: Erro interno
+ */
 userRouter.delete('/deleteuser/:id', userController.deleteAccount)

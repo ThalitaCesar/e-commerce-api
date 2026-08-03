@@ -240,15 +240,361 @@ export const productRouter = express.Router()
 
 const productController = new ProductController()
 
+/**
+ * @swagger
+ * tags:
+ *   name: Product
+ *   description: Produtos, imagens e tamanhos
+ */
+
+/**
+ * @swagger
+ * /product/getproducts:
+ *   get:
+ *     summary: Lista produtos paginados, com busca opcional
+ *     tags: [Product]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: perPage
+ *         schema:
+ *           type: integer
+ *           default: 8
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Termo de busca pelo nome do produto
+ *     responses:
+ *       200:
+ *         description: Lista de produtos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Result:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 TotalCount:
+ *                   type: integer
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.get('/getproducts', productController.getAllProducts);
+
+/**
+ * @swagger
+ * /product/getproducts/{category}:
+ *   get:
+ *     summary: Lista produtos paginados por categoria
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [FEM, MASC, SPORT, BA, FOOTWEAR]
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: perPage
+ *         schema:
+ *           type: integer
+ *           default: 8
+ *     responses:
+ *       200:
+ *         description: Lista de produtos da categoria
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Result:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 TotalCount:
+ *                   type: integer
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.get('/getproducts/:category', productController.getProductByCategory);
+
+/**
+ * @swagger
+ * /product/product/{id}:
+ *   get:
+ *     summary: Busca um produto pelo id
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Produto encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Result:
+ *                   $ref: '#/components/schemas/Product'
+ *       401:
+ *         description: Parâmetro id não informado
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.get('/product/:id', productController.getProductById)
+
+/**
+ * @swagger
+ * /product/getAllImagesByProduct/{id}:
+ *   get:
+ *     summary: Lista as imagens de um produto
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista de imagens
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.get('/getAllImagesByProduct/:id', productController.getImagesByProduct)
+
+/**
+ * @swagger
+ * /product/getAllSizesByProduct/{id}:
+ *   get:
+ *     summary: Lista os tamanhos de um produto
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista de tamanhos
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.get('/getAllSizesByProduct/:id', productController.getSizesByProduct)
+
+/**
+ * @swagger
+ * /product/postproduct:
+ *   post:
+ *     summary: Cria um novo produto
+ *     tags: [Product]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, description, price, created, category, folder]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: string
+ *               created:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *                 enum: [FEM, MASC, SPORT, BA, FOOTWEAR]
+ *               folder:
+ *                 type: string
+ *     responses:
+ *       202:
+ *         description: Produto criado com sucesso
+ *       422:
+ *         description: Parâmetros obrigatórios não informados
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.post('/postproduct', productController.postProduct)
+
+/**
+ * @swagger
+ * /product/postimage/{id}:
+ *   post:
+ *     summary: Adiciona uma imagem a um produto
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Id do produto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [photos]
+ *             properties:
+ *               photos:
+ *                 type: string
+ *     responses:
+ *       202:
+ *         description: Imagem criada com sucesso
+ *       422:
+ *         description: Parâmetros obrigatórios não informados
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.post('/postimage/:id', productController.postImage)
+
+/**
+ * @swagger
+ * /product/postsize/{id}:
+ *   post:
+ *     summary: Adiciona um tamanho a um produto
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Id do produto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [sizes]
+ *             properties:
+ *               sizes:
+ *                 type: string
+ *     responses:
+ *       202:
+ *         description: Tamanho criado com sucesso
+ *       422:
+ *         description: Parâmetros obrigatórios não informados
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.post('/postsize/:id', productController.postSize)
+
+/**
+ * @swagger
+ * /product/updateproduct:
+ *   put:
+ *     summary: Atualiza um produto
+ *     tags: [Product]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [id]
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *                 enum: [FEM, MASC, SPORT, BA, FOOTWEAR]
+ *               folder:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Produto atualizado com sucesso
+ *       422:
+ *         description: Parâmetro id não informado
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.put('/updateproduct', productController.updateProduct)
+
+/**
+ * @swagger
+ * /product/deleteproduct/{id}:
+ *   delete:
+ *     summary: Exclui um produto
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Produto excluído com sucesso
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.delete('/deleteproduct/:id', productController.deleteProduct)
+
+/**
+ * @swagger
+ * /product/deleteimage/{id}:
+ *   delete:
+ *     summary: Exclui uma imagem
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Imagem excluída com sucesso
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.delete('/deleteimage/:id', productController.deleteImages)
+
+/**
+ * @swagger
+ * /product/deletesize/{id}:
+ *   delete:
+ *     summary: Exclui um tamanho
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Tamanho excluído com sucesso
+ *       500:
+ *         description: Erro interno
+ */
 productRouter.delete('/deletesize/:id', productController.deleteSize)

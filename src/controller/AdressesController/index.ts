@@ -113,7 +113,139 @@ export const adressesRouter = express.Router()
 
 const adressesController = new AdressesController()
 
+/**
+ * @swagger
+ * tags:
+ *   name: Adresses
+ *   description: Endereços dos usuários
+ */
+
+/**
+ * @swagger
+ * /adresses/getadresses/{id}:
+ *   get:
+ *     summary: Lista os endereços de um usuário
+ *     tags: [Adresses]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Id do usuário
+ *     responses:
+ *       200:
+ *         description: Lista de endereços
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Result:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Adresses'
+ *       500:
+ *         description: Erro interno
+ */
 adressesRouter.get('/getadresses/:id', adressesController.getAllAdressesByUser)
+
+/**
+ * @swagger
+ * /adresses/postadresses/:
+ *   post:
+ *     summary: Cria um endereço para o usuário
+ *     tags: [Adresses]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [cep, street, district, city, number, user_id]
+ *             properties:
+ *               cep:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               district:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               number:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               complement:
+ *                 type: string
+ *               user_id:
+ *                 type: string
+ *     responses:
+ *       202:
+ *         description: Endereço criado com sucesso
+ *       422:
+ *         description: Parâmetros obrigatórios não informados
+ *       500:
+ *         description: Erro interno
+ */
 adressesRouter.post('/postadresses/', adressesController.postAdresses)
+
+/**
+ * @swagger
+ * /adresses/updateadresses:
+ *   put:
+ *     summary: Atualiza um endereço
+ *     tags: [Adresses]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [id]
+ *             properties:
+ *               id:
+ *                 type: string
+ *               cep:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               district:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               number:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               complement:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Endereço atualizado com sucesso
+ *       422:
+ *         description: Parâmetro id não informado
+ *       500:
+ *         description: Erro interno
+ */
 adressesRouter.put('/updateadresses', adressesController.updateAdresses)
+
+/**
+ * @swagger
+ * /adresses/deleteadresses/{id}:
+ *   delete:
+ *     summary: Exclui um endereço
+ *     tags: [Adresses]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Endereço excluído com sucesso
+ *       500:
+ *         description: Erro interno
+ */
 adressesRouter.delete('/deleteadresses/:id', adressesController.deleteAdresses)
