@@ -9,7 +9,7 @@
         "migrations": "tsnd ./src/data/migrations.ts"
     },
     "engines": {
-        "node": "v16.14.0"
+        "node": "20.x"
     },
     "author": "Thalita",
     "license": "ISC",
