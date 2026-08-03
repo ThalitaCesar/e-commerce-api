@@ -1,0 +1,48 @@
+
+//criar usuário POST http://localhost:3003/user/signup 
+
+{
+    "name": "Usuário",
+    "cpf": "100.582.502-07",
+    "data": "2000/07/30",
+    "email":"user@email.com",
+    "password": "user@123",
+    "role": "NORMAL"
+}
+
+### //login POST http://localhost:3003/user/login
+
+{
+    "email":"user@email.com",
+    "password": "user@123",
+}
+
+
+### //busca usuario logado GET http://localhost:3003/user/profile Authorization: token 
+
+### // busca usuario por id GET http://localhost:3003/user/profile/:id Authorization: token
+
+### // editar usuário
+
+PUT http://localhost:3003/user/updateuser/:id Authorization: token 
+
+{
+        "id": "22c9833a-0b4b-431d-a6ff-908900798e85",
+        "name": "User",
+        "cpf": "104.201.208-02",
+        "data": "2000-07-30T03:00:00.000Z"
+}
+
+### // editar senha
+
+PUT http://localhost:3003/user/updatepassword/:id Authorization: token Content-Type: application/json
+
+{
+     "id": "22c9833a-0b4b-431d-a6ff-908900798e85",
+     "password": "user123"
+
+}
+
+### // deletar usuário
+
+DELETE http://localhost:3003/user/deleteuser/:id Authorization: token

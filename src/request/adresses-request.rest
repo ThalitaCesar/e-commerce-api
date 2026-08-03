@@ -1,0 +1,28 @@
+//criar endereço POST http://localhost:3003/adresses/postadresses/:id
+{
+    "cep": "59122412",
+    "street": "rua do cajueiro",
+    "district": "solar",
+    "city": "Azaléia",
+    "complement": "bloco 7 apartamento 320",
+    "state": "RJ",
+    "number": "7582A"
+}
+
+
+
+### //busca endereços por usuário GET http://localhost:3003/adresses/adresses/:id 
+
+### // editar endereço PUT http://localhost:3003/adresses/updateadresses
+
+{
+    "cep": "59122412",
+    "street": "rua do cajueiro",
+    "district": "solar",
+    "city": "Azaléia",
+    "complement": "bloco 7 apartamento 320",
+    "state": "RJ",
+    "number": "7582A"
+    }
+
+### // deletar endereço DELETE http://localhost:3003/adresses/deleteadresses/:id

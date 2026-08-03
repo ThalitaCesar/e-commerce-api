@@ -1,0 +1,14 @@
+//criar endereço POST http://localhost:3003/order/postorder
+{
+    "name": "Homens Blazers & Calças sob medida ",
+    "folder": "https://img.ltwebstatic.com/images3_pi/2022/07/01/1656641113fed367f0c90bf96c2187bca8cb92ac5e_thumbnail_600x.webp",
+    "size": "M",
+    "price": "R$312,95",
+    "user_id": "22c9833a-0b4b-431d-a6ff-908900798e85"
+}
+
+
+
+### //busca endereços por usuário GET http://localhost:3003/order/getorderbyuser/:id 
+
+### // deletar endereço DELETE http://localhost:3003/order/deleteorder/:id
