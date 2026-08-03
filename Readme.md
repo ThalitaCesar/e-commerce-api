@@ -1,5 +1,7 @@
 # Backend
 
+## Deploy
+* Live API: https://e-commerce-api-3swp.onrender.com/
 
 ## Relevant Information
 * The repository is a Node.js API built with TypeScript and object-oriented programming using the Express framework.
