@@ -1,7 +1,7 @@
 
 export type AuthenticationData = {
    id: string;
-   roles: string;
+   role: string;
  };
 
 

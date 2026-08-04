@@ -1,113 +1,103 @@
 import express from "express";
-import { Request, Response} from "express";
+import { NextFunction, Request, Response } from "express";
 import { AdressesData } from "../../data/AdressesData";
 import { Adresses } from "../../models/AdressesModel";
+import { ROLES } from "../../models/UserModel";
 import { GenerateId } from "../../services/GenerateId";
+import { AppError } from "../../utils/AppError";
+import { authenticate, requireSelfOrAdmin } from "../../middlewares/authMiddleware";
+import { createAdressesSchema, updateAdressesSchema } from "../../validators/adressesValidator";
 
 export class AdressesController {
 
 // Criar endereço do usuário
 
-  async postAdresses(req: Request, res: Response) {
-    let errorstatus = 500;
+  async postAdresses(req: Request, res: Response, next: NextFunction) {
     try {
       const id = new GenerateId().generateId();
-      const {  
-        cep,
-        street,
-        district,
-        city,
-        number,
-        state,
-        complement,
-        user_id} = req.body;
-      if ( !cep|| !street || !district || !city || !number  || !user_id  || !number) {
-        errorstatus = 422;
-        throw new Error("Digite os parametros necessarios ");
-      }
+      const validated = createAdressesSchema.parse(req.body);
       const newAdresses = new Adresses(
         id,
-        cep,
-        street,
-        district,
-        city,
-        complement,
-        state,
-        number,
-        user_id
+        validated.cep,
+        validated.street,
+        validated.district,
+        validated.city,
+        validated.complement,
+        validated.state,
+        validated.number,
+        req.user!.id
       );
       const adressesData = new AdressesData();
       const result = await adressesData.createAdresses(newAdresses);
-      console.log(result);
       res.status(202).send({ result: result });
-    } catch (error:any) {
-      res.status(errorstatus).send(error.message || error.sqlMessage);
+    } catch (error) {
+      next(error);
     }
   }
 
 // Pegar todos os endereços do usuário
 
-  async getAllAdressesByUser(req: Request, res: Response) {
-    let errorstatus = 500;
-    const user_id = req.params.id;
+  async getAllAdressesByUser(req: Request, res: Response, next: NextFunction) {
     try {
+      const user_id = req.params.id;
       const adresses = await new AdressesData().getAllAdressesByUser(user_id);
       res.status(200).send({ Result: adresses });
-    } catch (error:any) {
-      res.status(errorstatus).send(error.message || error.sqlMessage);
+    } catch (error) {
+      next(error);
     }
   }
 
 //  Editar Endereço
 
-  async updateAdresses(req: Request, res: Response) {
-    let errorstatus = 500;
+  async updateAdresses(req: Request, res: Response, next: NextFunction) {
     try {
-      const { 
-        id,
-        cep,
-        street,
-        district,
-        city,
-        number,
-        state,
-        complement,
-       } = req.body;
-      if (!id) {
-        errorstatus = 422;
-        throw new Error("Parâmetro id é obrigatório");
+      const validated = updateAdressesSchema.parse(req.body);
+      const adressesData = new AdressesData();
+      const adresses = await adressesData.getAdressesById(validated.id);
+      if (!adresses) {
+        throw new AppError("Endereço não encontrado", 404);
       }
-      const result = await new AdressesData().updateAdresses(
-        id,
-        cep,
-        street,
-        district,
-        city,
-        number,
-        state,
-        complement,
+      if (adresses.user_id !== req.user!.id && req.user!.role !== ROLES.ADMIN) {
+        throw new AppError("Acesso negado", 403);
+      }
+      const result = await adressesData.updateAdresses(
+        validated.id,
+        validated.cep as string,
+        validated.street as string,
+        validated.district as string,
+        validated.city as string,
+        validated.number as string,
+        validated.state as string,
+        validated.complement,
       );
       res.status(201).send(result);
-    } catch (error:any) {
-      res.status(errorstatus).send(error.message || error.sqlMessage);
+    } catch (error) {
+      next(error);
     }
   }
 
 // Deletar Endereço
 
-  async deleteAdresses(req: Request, res: Response) {
-    let errorstatus = 500;
+  async deleteAdresses(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id;
-      const result = await new AdressesData().deleteAdresses(id);
+      const adressesData = new AdressesData();
+      const adresses = await adressesData.getAdressesById(id);
+      if (!adresses) {
+        throw new AppError("Endereço não encontrado", 404);
+      }
+      if (adresses.user_id !== req.user!.id && req.user!.role !== ROLES.ADMIN) {
+        throw new AppError("Acesso negado", 403);
+      }
+      const result = await adressesData.deleteAdresses(id);
       res.status(200).send({ result: result });
-    } catch (error:any) {
-      res.status(errorstatus).send(error.message || error.sqlMessage);
+    } catch (error) {
+      next(error);
     }
   }
 }
 
-// Rotas 
+// Rotas
 
 export const adressesRouter = express.Router()
 
@@ -126,6 +116,8 @@ const adressesController = new AdressesController()
  *   get:
  *     summary: Lista os endereços de um usuário
  *     tags: [Adresses]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -145,24 +137,30 @@ const adressesController = new AdressesController()
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Adresses'
+ *       401:
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso negado
  *       500:
  *         description: Erro interno
  */
-adressesRouter.get('/getadresses/:id', adressesController.getAllAdressesByUser)
+adressesRouter.get('/getadresses/:id', authenticate, requireSelfOrAdmin((req) => req.params.id), adressesController.getAllAdressesByUser)
 
 /**
  * @swagger
  * /adresses/postadresses/:
  *   post:
- *     summary: Cria um endereço para o usuário
+ *     summary: Cria um endereço para o usuário autenticado
  *     tags: [Adresses]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [cep, street, district, city, number, user_id]
+ *             required: [cep, street, district, city, number]
  *             properties:
  *               cep:
  *                 type: string
@@ -178,24 +176,26 @@ adressesRouter.get('/getadresses/:id', adressesController.getAllAdressesByUser)
  *                 type: string
  *               complement:
  *                 type: string
- *               user_id:
- *                 type: string
  *     responses:
  *       202:
  *         description: Endereço criado com sucesso
- *       422:
- *         description: Parâmetros obrigatórios não informados
+ *       400:
+ *         description: Erro de validação
+ *       401:
+ *         description: Token não informado ou inválido
  *       500:
  *         description: Erro interno
  */
-adressesRouter.post('/postadresses/', adressesController.postAdresses)
+adressesRouter.post('/postadresses/', authenticate, adressesController.postAdresses)
 
 /**
  * @swagger
  * /adresses/updateadresses:
  *   put:
- *     summary: Atualiza um endereço
+ *     summary: Atualiza um endereço do usuário autenticado
  *     tags: [Adresses]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -223,12 +223,18 @@ adressesRouter.post('/postadresses/', adressesController.postAdresses)
  *     responses:
  *       201:
  *         description: Endereço atualizado com sucesso
- *       422:
- *         description: Parâmetro id não informado
+ *       400:
+ *         description: Erro de validação
+ *       401:
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso negado
+ *       404:
+ *         description: Endereço não encontrado
  *       500:
  *         description: Erro interno
  */
-adressesRouter.put('/updateadresses', adressesController.updateAdresses)
+adressesRouter.put('/updateadresses', authenticate, adressesController.updateAdresses)
 
 /**
  * @swagger
@@ -236,6 +242,8 @@ adressesRouter.put('/updateadresses', adressesController.updateAdresses)
  *   delete:
  *     summary: Exclui um endereço
  *     tags: [Adresses]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -245,7 +253,13 @@ adressesRouter.put('/updateadresses', adressesController.updateAdresses)
  *     responses:
  *       200:
  *         description: Endereço excluído com sucesso
+ *       401:
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso negado
+ *       404:
+ *         description: Endereço não encontrado
  *       500:
  *         description: Erro interno
  */
-adressesRouter.delete('/deleteadresses/:id', adressesController.deleteAdresses)
+adressesRouter.delete('/deleteadresses/:id', authenticate, adressesController.deleteAdresses)

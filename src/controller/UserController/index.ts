@@ -1,178 +1,166 @@
 import express from "express";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { UserData } from "../../data/UserData";
 import { ROLES, User } from "../../models/UserModel";
 import { Autheticator } from "../../services/Authenticator";
 import { GenerateId } from "../../services/GenerateId";
 import { HashManager } from "../../services/HashManager";
-import { loginSchema, signUpSchema } from "../../validators/userValidator";
+import {
+  loginSchema,
+  signUpSchema,
+  updatePasswordSchema,
+  updateProfileSchema,
+} from "../../validators/userValidator";
+import { AppError } from "../../utils/AppError";
+import { authenticate, requireAdmin, requireSelfOrAdmin } from "../../middlewares/authMiddleware";
+import { authLimiter } from "../../middlewares/rateLimiter";
 
 export class UserController {
 
-  // Criar usuário 
-   async signUpUser(req: Request, res: Response) {
-      let erroStatus = 500;
+  // Criar usuário
+   async signUpUser(req: Request, res: Response, next: NextFunction) {
       try {
         const validated = signUpSchema.parse(req.body);
-        const { name, cpf, data, email, password, role } = validated;
+        const { name, cpf, data, email, password } = validated;
         const id = new GenerateId().generateId();
-        const normalizedRole = (role || ROLES.NORMAL) as ROLES;
-        const newPassword = await new HashManager().generateHash(password);
-        const newUser = new User(id, name, email, data, cpf, newPassword, normalizedRole);
+        const hashedPassword = await new HashManager().generateHash(password);
+        const newUser = new User(id, name, email, data, cpf, hashedPassword, ROLES.NORMAL);
         const userdata = new UserData();
-        const result = await userdata.signUpUser(newUser);
-        console.log(result);
-        res.status(202).send({ result: result });
-      } catch (error:any) {
-        res.status(erroStatus).send(error.sqlMessage || error.message);
+        await userdata.signUpUser(newUser);
+        const token = new Autheticator().generateToken(id, ROLES.NORMAL);
+        res.status(202).send({ result: { id, name, email, role: ROLES.NORMAL, token } });
+      } catch (error) {
+        next(error);
       }
     }
-  
-    async loginUser(req: Request, res: Response) {
-      let erroStatus = 500;
+
+    async loginUser(req: Request, res: Response, next: NextFunction) {
       try {
         const validated = loginSchema.parse(req.body);
         const { email, password } = validated;
-        const userData = new UserData();
-        const [result] = await userData.loginUser(email);
-        const authenticator = new Autheticator().generateToken(result);
-        res.status(200).send({ result: authenticator });
-      } catch (error:any) {
-        res.status(erroStatus).send(error.message);
+        const user = await new UserData().getProfileByEmail(email);
+        if (!user) {
+          throw new AppError("Credenciais inválidas", 401);
+        }
+        const validPassword = await new HashManager().compareHash(password, user.password);
+        if (!validPassword) {
+          throw new AppError("Credenciais inválidas", 401);
+        }
+        const token = new Autheticator().generateToken(user.id, user.role);
+        res.status(200).send({ result: token });
+      } catch (error) {
+        next(error);
       }
     }
-  
-// Pegar todos os usuários
 
-async getAllUsers(req: Request, res: Response) {
-  let errorstatus = 500;
+// Pegar todos os usuários (admin)
+
+async getAllUsers(req: Request, res: Response, next: NextFunction) {
   try {
-    const [user] = await new UserData().getAllUsers();
-    const result = {
-      id: user.id,
-      name: user.name,
-      cpf: user.cpf,
-      data: user.data,
-      email: user.email,
-      role: user.role
-    };
-    res.status(200).send({ Result: result });
-  } catch (error:any) {
-    res.status(errorstatus).send(error.message || error.sqlMessage);
+    const users = await new UserData().getAllUsers();
+    res.status(200).send({ Result: users });
+  } catch (error) {
+    next(error);
   }
 }
     // Pega os dados do usuário logado
 
-    async getProfile(req: Request, res: Response) {
-      let erroStatus = 500;
+    async getProfile(req: Request, res: Response, next: NextFunction) {
       try {
-        const token = req.headers.authorization as string;
-        if (!token) {
-          erroStatus = 401;
-          throw new Error("Digite token no headers");
-        }
-        const newtoken = new Autheticator().tokenData(token);
-        const [result] = await new UserData().getProfile(newtoken.id);
+        const [result] = await new UserData().getProfile(req.user!.id);
         res.status(200).send({ result: result });
-      } catch (error:any) {
-        res.status(erroStatus).send(error.sqlMessage || error.message);
+      } catch (error) {
+        next(error);
       }
     }
-  
-    // Pega usuário especifico por id 
 
-    async getProfileById(req: Request, res: Response) {
-      let erroStatus = 500;
+    // Pega usuário especifico por id
+
+    async getProfileById(req: Request, res: Response, next: NextFunction) {
       try {
         const id = req.params.id as string;
-        if ( !id) {
-          erroStatus = 401;
-          throw new Error("Digite parametros necessarios");
-        }
         const [result] = await new UserData().getProfileById(id);
         res.status(200).send({ result: result });
-      } catch (error:any) {
-        res.status(erroStatus).send(error.sqlMessage || error.message);
+      } catch (error) {
+        next(error);
       }
     }
-     // Pega id do usuário por email 
+     // Pega id do usuário por email
 
-     async getIdUserByEmail(req: Request, res: Response) {
-      let erroStatus = 500;
+     async getIdUserByEmail(req: Request, res: Response, next: NextFunction) {
       try {
         const email = req.params.email as string;
         const [result] = await new UserData().getIdUserByEmail(email);
         res.status(200).send({ result: result });
-      } catch (error:any) {
-        res.status(erroStatus).send(error.sqlMessage || error.message);
+      } catch (error) {
+        next(error);
       }
     }
 
     // Alterar dados do usuário logado
 
-    async updateProfile(req: Request, res: Response) {
-      let errorstatus = 500;
+    async updateProfile(req: Request, res: Response, next: NextFunction) {
       try {
-        const {id, name, cpf, data, email} = req.body;
-        if (!id) {
-          errorstatus = 422;
-          throw new Error("Parametro id e obrigatório");
-        }
+        const validated = updateProfileSchema.parse(req.body);
+        const isAdmin = req.user!.role === ROLES.ADMIN;
+        const id = isAdmin ? validated.id : req.user!.id;
         const result = await new UserData().updateUser(
           id,
-          name,
-          cpf,
-          data,
-          email
+          validated.name as string,
+          validated.cpf as string,
+          validated.data as string,
+          validated.email as string
         );
         res.status(201).send(result);
-      } catch (error:any) {
-        res.status(errorstatus).send(error.message || error.sqlMessage);
-      }
-    }
-  
-    // Excluir conta
-    async deleteAccount(req: Request, res: Response) {
-      let erroStatus = 500;
-      try {
-        const token:any = req.headers.authorization;
-        const id = req.params.id;
-        if (!token) {
-          erroStatus = 422;
-          throw new Error("Digite um token");
-        }
-        const result = await new UserData().deleteUser(id);
-        res.status(200).send({ Result: result });
-      } catch (error:any) {
-        res.status(erroStatus).send(error.sqlMessage || error.message);
+      } catch (error) {
+        next(error);
       }
     }
 
-    async updatePassword(req: Request, res: Response) {
-      let errorstatus = 500;
+    // Excluir conta
+    async deleteAccount(req: Request, res: Response, next: NextFunction) {
       try {
-        const {id, password} = req.body;
-        if (!id || !password) {
-          errorstatus = 422;
-          throw new Error("Parametro id e password são obrigatórios");
+        const id = req.params.id;
+        const result = await new UserData().deleteUser(id);
+        res.status(200).send({ Result: result });
+      } catch (error) {
+        next(error);
+      }
+    }
+
+    async updatePassword(req: Request, res: Response, next: NextFunction) {
+      try {
+        const validated = updatePasswordSchema.parse(req.body);
+        const isAdmin = req.user!.role === ROLES.ADMIN;
+        const id = isAdmin ? validated.id : req.user!.id;
+        const userData = new UserData();
+        const hashManager = new HashManager();
+
+        if (!isAdmin) {
+          if (!validated.currentPassword) {
+            throw new AppError("Senha atual é obrigatória", 422);
+          }
+          const targetUser = await userData.getById(id);
+          if (!targetUser) {
+            throw new AppError("Usuário não encontrado", 404);
+          }
+          const validPassword = await hashManager.compareHash(validated.currentPassword, targetUser.password);
+          if (!validPassword) {
+            throw new AppError("Senha atual incorreta", 401);
+          }
         }
-  
-        if (!id) {
-          errorstatus = 422;
-          throw new Error("Parametro id e obrigatório");}
-        const result = await new UserData().updatePassword(
-          id,
-          password,
-        );
+
+        const newHashedPassword = await hashManager.generateHash(validated.newPassword);
+        const result = await userData.updatePassword(id, newHashedPassword);
         res.status(201).send(result);
-      } catch (error:any) {
-        res.status(errorstatus).send(error.message || error.sqlMessage);
+      } catch (error) {
+        next(error);
       }
     }
 }
 
 
-// Rotas 
+// Rotas
 
 export const userRouter = express.Router()
 
@@ -191,6 +179,8 @@ const userController = new UserController()
  *   get:
  *     summary: Lista os usuários cadastrados
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Usuário retornado com sucesso
@@ -201,10 +191,14 @@ const userController = new UserController()
  *               properties:
  *                 Result:
  *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso restrito a administradores
  *       500:
  *         description: Erro interno
  */
-userRouter.get('/profiles', userController.getAllUsers)
+userRouter.get('/profiles', authenticate, requireAdmin, userController.getAllUsers)
 
 /**
  * @swagger
@@ -212,6 +206,8 @@ userRouter.get('/profiles', userController.getAllUsers)
  *   get:
  *     summary: Busca um usuário pelo id
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -229,11 +225,13 @@ userRouter.get('/profiles', userController.getAllUsers)
  *                 result:
  *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Parâmetro id não informado
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso negado
  *       500:
  *         description: Erro interno
  */
-userRouter.get('/profile/:id', userController.getProfileById)
+userRouter.get('/profile/:id', authenticate, requireSelfOrAdmin((req) => req.params.id), userController.getProfileById)
 
 /**
  * @swagger
@@ -241,6 +239,8 @@ userRouter.get('/profile/:id', userController.getProfileById)
  *   get:
  *     summary: Busca o id de um usuário pelo email
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: email
@@ -250,10 +250,12 @@ userRouter.get('/profile/:id', userController.getProfileById)
  *     responses:
  *       200:
  *         description: Id encontrado
+ *       401:
+ *         description: Token não informado ou inválido
  *       500:
  *         description: Erro interno
  */
-userRouter.get('/userid/:email', userController.getIdUserByEmail)
+userRouter.get('/userid/:email', authenticate, userController.getIdUserByEmail)
 
 /**
  * @swagger
@@ -263,13 +265,6 @@ userRouter.get('/userid/:email', userController.getIdUserByEmail)
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: header
- *         name: Authorization
- *         required: true
- *         schema:
- *           type: string
- *         description: Token JWT do usuário logado
  *     responses:
  *       200:
  *         description: Dados do usuário
@@ -281,11 +276,11 @@ userRouter.get('/userid/:email', userController.getIdUserByEmail)
  *                 result:
  *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Token não informado
+ *         description: Token não informado ou inválido
  *       500:
  *         description: Erro interno
  */
-userRouter.get('/profile', userController.getProfile)
+userRouter.get('/profile', authenticate, userController.getProfile)
 
 /**
  * @swagger
@@ -312,16 +307,17 @@ userRouter.get('/profile', userController.getProfile)
  *                 type: string
  *               password:
  *                 type: string
- *               role:
- *                 type: string
- *                 enum: [ADMIN, NORMAL]
  *     responses:
  *       202:
  *         description: Usuário criado com sucesso
+ *       400:
+ *         description: Erro de validação
+ *       429:
+ *         description: Muitas tentativas
  *       500:
- *         description: Erro de validação ou interno
+ *         description: Erro interno
  */
-userRouter.post('/signup', userController.signUpUser)
+userRouter.post('/signup', authLimiter, userController.signUpUser)
 
 /**
  * @swagger
@@ -352,17 +348,23 @@ userRouter.post('/signup', userController.signUpUser)
  *                 result:
  *                   type: string
  *                   description: Token JWT
+ *       401:
+ *         description: Credenciais inválidas
+ *       429:
+ *         description: Muitas tentativas
  *       500:
- *         description: Credenciais inválidas ou erro interno
+ *         description: Erro interno
  */
-userRouter.post('/login', userController.loginUser)
+userRouter.post('/login', authLimiter, userController.loginUser)
 
 /**
  * @swagger
  * /user/updateuser:
  *   put:
- *     summary: Atualiza os dados do usuário
+ *     summary: Atualiza os dados do usuário autenticado
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -384,12 +386,14 @@ userRouter.post('/login', userController.loginUser)
  *     responses:
  *       201:
  *         description: Usuário atualizado com sucesso
- *       422:
- *         description: Parâmetro id não informado
+ *       400:
+ *         description: Erro de validação
+ *       401:
+ *         description: Token não informado ou inválido
  *       500:
  *         description: Erro interno
  */
-userRouter.put('/updateuser',userController.updateProfile)
+userRouter.put('/updateuser', authenticate, userController.updateProfile)
 
 /**
  * @swagger
@@ -397,6 +401,8 @@ userRouter.put('/updateuser',userController.updateProfile)
  *   put:
  *     summary: Atualiza a senha do usuário
  *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -409,21 +415,27 @@ userRouter.put('/updateuser',userController.updateProfile)
  *         application/json:
  *           schema:
  *             type: object
- *             required: [id, password]
+ *             required: [id, newPassword]
  *             properties:
  *               id:
  *                 type: string
- *               password:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
  *                 type: string
  *     responses:
  *       201:
  *         description: Senha atualizada com sucesso
- *       422:
- *         description: Parâmetros obrigatórios não informados
+ *       400:
+ *         description: Erro de validação
+ *       401:
+ *         description: Token não informado, inválido, ou senha atual incorreta
+ *       403:
+ *         description: Acesso negado
  *       500:
  *         description: Erro interno
  */
-userRouter.put('/updatepassword/:id',userController.updatePassword)
+userRouter.put('/updatepassword/:id', authenticate, requireSelfOrAdmin((req) => req.params.id), userController.updatePassword)
 
 /**
  * @swagger
@@ -439,17 +451,14 @@ userRouter.put('/updatepassword/:id',userController.updatePassword)
  *         required: true
  *         schema:
  *           type: string
- *       - in: header
- *         name: Authorization
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Conta excluída com sucesso
- *       422:
- *         description: Token não informado
+ *       401:
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso negado
  *       500:
  *         description: Erro interno
  */
-userRouter.delete('/deleteuser/:id', userController.deleteAccount)
+userRouter.delete('/deleteuser/:id', authenticate, requireSelfOrAdmin((req) => req.params.id), userController.deleteAccount)

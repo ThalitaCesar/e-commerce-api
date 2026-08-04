@@ -1,71 +1,70 @@
 import express from "express";
-import { Request, Response} from "express";
+import { NextFunction, Request, Response } from "express";
 import { OrderData } from "../../data/OrderData";
 import { Order } from "../../models/OrderModel";
+import { ROLES } from "../../models/UserModel";
 import { GenerateId } from "../../services/GenerateId";
+import { AppError } from "../../utils/AppError";
+import { authenticate, requireSelfOrAdmin } from "../../middlewares/authMiddleware";
+import { createOrderSchema } from "../../validators/orderValidator";
 
 export class OrderController {
 
 // Criar pedido
-  async postOrder(req: Request, res: Response) {
-    let errorstatus = 500;
+  async postOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const id = new GenerateId().generateId();
-
-      const { name, folder, size, price,  user_id } = req.body;
-      if ( !name|| !folder || !size || !price || !user_id ) {
-        errorstatus = 422;
-        throw new Error("Digite os parametros necessarios ");
-      }
+      const validated = createOrderSchema.parse(req.body);
       const newOrder = new Order(
         id,
-        name,
-        folder,
-        size,
-        price,
-        user_id
+        validated.name,
+        validated.folder,
+        validated.size,
+        validated.price,
+        req.user!.id
       );
       const orderdata = new OrderData();
       const result = await orderdata.createOrder(newOrder);
-      console.log(result);
       res.status(202).send({ result: result });
-    } catch (error:any) {
-      res.status(errorstatus).send(error.message || error.sqlMessage);
+    } catch (error) {
+      next(error);
     }
   }
 
 // Pegar todos os pedidos do usuário
 
-  async getOrdersByUser(req: Request, res: Response): Promise<void> {
-    let errorstatus = 500;
-    const id = req.params.id as string;
+  async getOrdersByUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        if ( !id) {
-          errorstatus = 401;
-          throw new Error("O parâmetro id é necessário");
-    }
+      const id = req.params.id as string;
       const order = await new OrderData().getAllOrderByUser(id);
       res.status(200).send({ Result: order });
-    } catch (error:any) {
-      res.status(errorstatus).send(error.message || error.sqlMessage);
+    } catch (error) {
+      next(error);
     }
   }
 
 // Deletar pedido
 
-  async deleteOrder(req: Request, res: Response) {
-    let errorstatus = 500;
+  async deleteOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id;
-      const result = await new OrderData().deleteOrder(id);
+      const orderData = new OrderData();
+      const order = await orderData.getOrderById(id);
+      if (!order) {
+        throw new AppError("Pedido não encontrado", 404);
+      }
+      if (order.user_id !== req.user!.id && req.user!.role !== ROLES.ADMIN) {
+        throw new AppError("Acesso negado", 403);
+      }
+      const result = await orderData.deleteOrder(id);
       res.status(200).send({ result: result });
-    } catch (error:any) {
-      res.status(errorstatus).send(error.message || error.sqlMessage);
+    } catch (error) {
+      next(error);
     }
   }
 }
 
-// Rotas 
+// Rotas
 
 export const orderRouter = express.Router()
 
@@ -84,6 +83,8 @@ const orderController = new OrderController()
  *   get:
  *     summary: Lista os pedidos de um usuário
  *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -104,25 +105,29 @@ const orderController = new OrderController()
  *                   items:
  *                     $ref: '#/components/schemas/Order'
  *       401:
- *         description: Parâmetro id não informado
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso negado
  *       500:
  *         description: Erro interno
  */
-orderRouter.get('/getorderbyuser/:id', orderController.getOrdersByUser)
+orderRouter.get('/getorderbyuser/:id', authenticate, requireSelfOrAdmin((req) => req.params.id), orderController.getOrdersByUser)
 
 /**
  * @swagger
  * /order/postorder:
  *   post:
- *     summary: Cria um novo pedido
+ *     summary: Cria um novo pedido para o usuário autenticado
  *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, folder, size, price, user_id]
+ *             required: [name, folder, size, price]
  *             properties:
  *               name:
  *                 type: string
@@ -132,17 +137,17 @@ orderRouter.get('/getorderbyuser/:id', orderController.getOrdersByUser)
  *                 type: string
  *               price:
  *                 type: string
- *               user_id:
- *                 type: string
  *     responses:
  *       202:
  *         description: Pedido criado com sucesso
- *       422:
- *         description: Parâmetros obrigatórios não informados
+ *       400:
+ *         description: Erro de validação
+ *       401:
+ *         description: Token não informado ou inválido
  *       500:
  *         description: Erro interno
  */
-orderRouter.post('/postorder', orderController.postOrder)
+orderRouter.post('/postorder', authenticate, orderController.postOrder)
 
 /**
  * @swagger
@@ -150,6 +155,8 @@ orderRouter.post('/postorder', orderController.postOrder)
  *   delete:
  *     summary: Exclui um pedido
  *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -159,7 +166,13 @@ orderRouter.post('/postorder', orderController.postOrder)
  *     responses:
  *       200:
  *         description: Pedido excluído com sucesso
+ *       401:
+ *         description: Token não informado ou inválido
+ *       403:
+ *         description: Acesso negado
+ *       404:
+ *         description: Pedido não encontrado
  *       500:
  *         description: Erro interno
  */
-orderRouter.delete('/deleteorder/:id', orderController.deleteOrder)
+orderRouter.delete('/deleteorder/:id', authenticate, orderController.deleteOrder)
