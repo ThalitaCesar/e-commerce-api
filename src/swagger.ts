@@ -71,6 +71,21 @@ const swaggerDefinition: swaggerJSDoc.SwaggerDefinition = {
           user_id: { type: "string" },
         },
       },
+      Payment: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          order_id: { type: "string" },
+          user_id: { type: "string" },
+          method: { type: "string", enum: ["CREDIT_CARD", "DEBIT_CARD", "PIX"] },
+          status: { type: "string", description: "Status devolvido pelo Mercado Pago (pending, approved, rejected, ...)" },
+          amount: { type: "number" },
+          external_id: { type: "string", description: "Id do pagamento no Mercado Pago" },
+          qr_code: { type: "string" },
+          qr_code_base64: { type: "string" },
+          ticket_url: { type: "string" },
+        },
+      },
       Error: {
         type: "object",
         properties: {

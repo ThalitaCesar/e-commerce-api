@@ -124,9 +124,10 @@ interface OrderAttributes {
   size: string;
   price: string;
   user_id: string;
+  status: string;
 }
 
-interface OrderCreationAttributes extends Optional<OrderAttributes, "id"> {}
+interface OrderCreationAttributes extends Optional<OrderAttributes, "id" | "status"> {}
 
 class OrderModel extends Model<OrderAttributes, OrderCreationAttributes> implements OrderAttributes {
   public id!: string;
@@ -135,6 +136,7 @@ class OrderModel extends Model<OrderAttributes, OrderCreationAttributes> impleme
   public size!: string;
   public price!: string;
   public user_id!: string;
+  public status!: string;
 }
 
 OrderModel.init(
@@ -145,8 +147,56 @@ OrderModel.init(
     size: { type: DataTypes.STRING, allowNull: false },
     price: { type: DataTypes.STRING, allowNull: false },
     user_id: { type: DataTypes.STRING, allowNull: false },
+    status: { type: DataTypes.STRING, allowNull: false, defaultValue: "PENDING_PAYMENT" },
   },
   { sequelize, tableName: "Lama_OrderUser", timestamps: false }
+);
+
+interface PaymentAttributes {
+  id: string;
+  order_id: string;
+  user_id: string;
+  method: string;
+  status: string;
+  amount: number;
+  external_id: string;
+  qr_code?: string;
+  qr_code_base64?: string;
+  ticket_url?: string;
+  created_at: Date;
+}
+
+interface PaymentCreationAttributes extends Optional<PaymentAttributes, "id" | "created_at"> {}
+
+class PaymentModel extends Model<PaymentAttributes, PaymentCreationAttributes> implements PaymentAttributes {
+  public id!: string;
+  public order_id!: string;
+  public user_id!: string;
+  public method!: string;
+  public status!: string;
+  public amount!: number;
+  public external_id!: string;
+  public qr_code?: string;
+  public qr_code_base64?: string;
+  public ticket_url?: string;
+  public created_at!: Date;
+}
+
+PaymentModel.init(
+  {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    order_id: { type: DataTypes.STRING, allowNull: false },
+    user_id: { type: DataTypes.STRING, allowNull: false },
+    method: { type: DataTypes.ENUM("CREDIT_CARD", "DEBIT_CARD", "PIX"), allowNull: false },
+    status: { type: DataTypes.STRING, allowNull: false },
+    amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    external_id: { type: DataTypes.STRING, allowNull: false },
+    qr_code: { type: DataTypes.TEXT, allowNull: true },
+    qr_code_base64: { type: DataTypes.TEXT, allowNull: true },
+    ticket_url: { type: DataTypes.STRING, allowNull: true },
+    created_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+  },
+  { sequelize, tableName: "Lama_Payment", timestamps: false }
 );
 
 interface AddressAttributes {
@@ -190,4 +240,4 @@ AddressModel.init(
   { sequelize, tableName: "Lama_Addresses", timestamps: false }
 );
 
-export { UserModel, ProductModel, ImageModel, SizeModel, OrderModel, AddressModel };
+export { UserModel, ProductModel, ImageModel, SizeModel, OrderModel, AddressModel, PaymentModel };

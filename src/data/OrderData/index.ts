@@ -35,7 +35,16 @@ export class OrderData extends DataBase {
 
   async getOrderById(id: string) {
     const result = await OrderModel.findOne({ where: { id } });
-    return result?.toJSON() as { id: string; user_id: string } | undefined;
+    return result?.toJSON() as { id: string; name: string; price: string; user_id: string; status: string } | undefined;
+  }
+
+  async updateStatus(id: string, status: string) {
+    const result = await OrderModel.findOne({ where: { id } });
+    if (!result) {
+      throw new AppError("Pedido não encontrado", 404);
+    }
+    await result.update({ status });
+    return "Status do pedido atualizado com sucesso";
   }
 
   async deleteOrder(id: string) {

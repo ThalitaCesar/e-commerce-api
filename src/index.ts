@@ -1,6 +1,7 @@
 import { adressesRouter } from "./controller/AdressesController";
 import { app } from "./controller/app";
 import { orderRouter } from "./controller/OrderController";
+import { paymentRouter } from "./controller/PaymentController";
 import { productRouter } from "./controller/ProductController";
 import { userRouter } from "./controller/UserController";
 import { connectDatabase } from "./database";
@@ -14,4 +15,5 @@ app.use('/user/', userRouter);
 app.use('/product/', productRouter);
 app.use('/adresses/', adressesRouter);
 app.use('/order/', orderRouter);
+app.use('/payment/', paymentRouter);
 app.use(errorHandler);

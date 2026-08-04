@@ -52,10 +52,25 @@ CREATE TABLE IF NOT EXISTS Lama_OrderUser(
     size VARCHAR(255) NOT NULL,
     price VARCHAR(255) NOT NULL,
     user_id VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL DEFAULT 'PENDING_PAYMENT',
     FOREIGN KEY (user_id) REFERENCES Lama_User(id)
 );
 
-
+CREATE TABLE IF NOT EXISTS Lama_Payment(
+	id VARCHAR(255) PRIMARY KEY,
+	order_id VARCHAR(255) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    method ENUM ("CREDIT_CARD","DEBIT_CARD","PIX") NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    external_id VARCHAR(255) NOT NULL,
+    qr_code TEXT,
+    qr_code_base64 TEXT,
+    ticket_url VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES Lama_OrderUser(id),
+    FOREIGN KEY (user_id) REFERENCES Lama_User(id)
+);
 
 
 
