@@ -1,0 +1,10 @@
+//cotar frete POST http://localhost:3003/shipping/quote
+{
+    "destinationPostalCode": "01310100",
+    "items": [
+        {
+            "productId": "1a1c5631-d930-4759-82b2-eeaa61763c19",
+            "quantity": 2
+        }
+    ]
+}

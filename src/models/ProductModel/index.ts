@@ -15,8 +15,12 @@ export enum CATEGORIES {
         private created: string,
         private category: CATEGORIES,
         private folder: string,
+        private weight: number,
+        private height: number,
+        private width: number,
+        private length: number,
       ) {}
-    
+
       getId() {
         return this.id;
       }
@@ -37,6 +41,18 @@ export enum CATEGORIES {
       }
       getFolder() {
         return this.folder;
+      }
+      getWeight() {
+        return this.weight;
+      }
+      getHeight() {
+        return this.height;
+      }
+      getWidth() {
+        return this.width;
+      }
+      getLength() {
+        return this.length;
       }
     }
 

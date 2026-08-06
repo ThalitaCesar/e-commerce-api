@@ -28,6 +28,10 @@ export class ProductController {
         validated.created,
         validated.category as CATEGORIES,
         validated.folder,
+        validated.weight,
+        validated.height,
+        validated.width,
+        validated.length,
       );
       const productdata = new ProductData();
       const result = await productdata.createProduct(newProduct);
@@ -102,7 +106,11 @@ async getProductByCategory(req: Request, res: Response, next: NextFunction): Pro
             validated.price as string,
             validated.description as string,
             validated.category as string,
-            validated.folder as string
+            validated.folder as string,
+            validated.weight,
+            validated.height,
+            validated.width,
+            validated.length,
       );
       res.status(201).send(result);
     } catch (error) {
@@ -532,7 +540,7 @@ productRouter.get('/getsizesbyvariation/:id', productController.getSizesByVariat
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, description, price, created, category, folder]
+ *             required: [name, description, price, created, category, folder, weight, height, width, length]
  *             properties:
  *               name:
  *                 type: string
@@ -547,6 +555,18 @@ productRouter.get('/getsizesbyvariation/:id', productController.getSizesByVariat
  *                 enum: [FEM, MASC, SPORT, BA, FOOTWEAR]
  *               folder:
  *                 type: string
+ *               weight:
+ *                 type: number
+ *                 description: Peso em kg, usado no cálculo de frete
+ *               height:
+ *                 type: number
+ *                 description: Altura em cm
+ *               width:
+ *                 type: number
+ *                 description: Largura em cm
+ *               length:
+ *                 type: number
+ *                 description: Comprimento em cm
  *     responses:
  *       202:
  *         description: Produto criado com sucesso
@@ -716,6 +736,14 @@ productRouter.post('/postvariationsize/:id', authenticate, requireAdmin, product
  *                 enum: [FEM, MASC, SPORT, BA, FOOTWEAR]
  *               folder:
  *                 type: string
+ *               weight:
+ *                 type: number
+ *               height:
+ *                 type: number
+ *               width:
+ *                 type: number
+ *               length:
+ *                 type: number
  *     responses:
  *       201:
  *         description: Produto atualizado com sucesso

@@ -44,6 +44,10 @@ const swaggerDefinition: swaggerJSDoc.SwaggerDefinition = {
             enum: ["FEM", "MASC", "SPORT", "BA", "FOOTWEAR"],
           },
           folder: { type: "string" },
+          weight: { type: "number", description: "Peso em kg, usado no cálculo de frete" },
+          height: { type: "number", description: "Altura em cm" },
+          width: { type: "number", description: "Largura em cm" },
+          length: { type: "number", description: "Comprimento em cm" },
         },
       },
       Order: {

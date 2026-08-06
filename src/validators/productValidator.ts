@@ -7,6 +7,10 @@ export const createProductSchema = z.object({
   created: z.string().trim().min(1, "Digite a data de criação"),
   category: z.enum(["FEM", "MASC", "SPORT", "BA", "FOOTWEAR"]),
   folder: z.string().trim().min(1, "Digite a pasta"),
+  weight: z.number().positive("Digite o peso em kg"),
+  height: z.number().positive("Digite a altura em cm"),
+  width: z.number().positive("Digite a largura em cm"),
+  length: z.number().positive("Digite o comprimento em cm"),
 });
 
 export const updateProductSchema = z.object({
@@ -16,6 +20,10 @@ export const updateProductSchema = z.object({
   description: z.string().trim().min(1).optional(),
   category: z.enum(["FEM", "MASC", "SPORT", "BA", "FOOTWEAR"]).optional(),
   folder: z.string().trim().min(1).optional(),
+  weight: z.number().positive().optional(),
+  height: z.number().positive().optional(),
+  width: z.number().positive().optional(),
+  length: z.number().positive().optional(),
 });
 
 export const createVariationSchema = z.object({

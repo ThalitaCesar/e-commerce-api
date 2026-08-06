@@ -18,8 +18,16 @@ export class ProductData extends DataBase {
         created: product.getCreated(),
         category: product.getCategory(),
         folder: product.getFolder(),
+        weight: product.getWeight(),
+        height: product.getHeight(),
+        width: product.getWidth(),
+        length: product.getLength(),
       });
       return "Produto criado com sucesso";
+    }
+
+    async getProductsByIds(ids: string[]) {
+      return ProductModel.findAll({ where: { id: ids } });
     }
 
     async getAllProducts(page: number, perPage: number, query?: string) {
@@ -91,12 +99,33 @@ export class ProductData extends DataBase {
     };
   }
 
-  async updateProduct(id: string, name: string, price: string, description: string, category: string, folder: string) {
+  async updateProduct(
+    id: string,
+    name: string,
+    price: string,
+    description: string,
+    category: string,
+    folder: string,
+    weight?: number,
+    height?: number,
+    width?: number,
+    length?: number,
+  ) {
     const result = await ProductModel.findOne({ where: { id } });
     if (!result) {
       throw new AppError("Produto não encontrado", 404);
     }
-    await result.update({ name, price, description, category, folder });
+    await result.update({
+      name,
+      price,
+      description,
+      category,
+      folder,
+      ...(weight !== undefined ? { weight } : {}),
+      ...(height !== undefined ? { height } : {}),
+      ...(width !== undefined ? { width } : {}),
+      ...(length !== undefined ? { length } : {}),
+    });
     return "Produto alterado com sucesso";
   }
 

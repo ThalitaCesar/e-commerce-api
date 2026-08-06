@@ -4,7 +4,11 @@
     "description": "Cor: Amarelo; Tipo das alças: Ajustável; Estampa: Desenho Animado; Estilo: Universitário; Tamanho da bolsa: Pequeno; Tipo: Bolsa quadrada; Composição: 100% Algodão; Material: Tecido" , 
     "price": "39,95" , 
     "created": "2022-12-09",
-    "category" : "BA"
+    "category" : "BA",
+    "weight": 0.3,
+    "height": 10,
+    "width": 20,
+    "length": 15
 }
 
 

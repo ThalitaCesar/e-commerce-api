@@ -44,9 +44,14 @@ interface ProductAttributes {
   created: string;
   category: string;
   folder: string;
+  weight: number | null;
+  height: number | null;
+  width: number | null;
+  length: number | null;
 }
 
-interface ProductCreationAttributes extends Optional<ProductAttributes, "id"> {}
+interface ProductCreationAttributes
+  extends Optional<ProductAttributes, "id" | "weight" | "height" | "width" | "length"> {}
 
 class ProductModel extends Model<ProductAttributes, ProductCreationAttributes> implements ProductAttributes {
   public id!: string;
@@ -56,6 +61,10 @@ class ProductModel extends Model<ProductAttributes, ProductCreationAttributes> i
   public created!: string;
   public category!: string;
   public folder!: string;
+  public weight!: number | null;
+  public height!: number | null;
+  public width!: number | null;
+  public length!: number | null;
 }
 
 ProductModel.init(
@@ -67,6 +76,10 @@ ProductModel.init(
     created: { type: DataTypes.STRING, allowNull: false },
     category: { type: DataTypes.STRING, allowNull: false },
     folder: { type: DataTypes.STRING, allowNull: false },
+    weight: { type: DataTypes.FLOAT, allowNull: true, comment: "Peso em kg" },
+    height: { type: DataTypes.FLOAT, allowNull: true, comment: "Altura em cm" },
+    width: { type: DataTypes.FLOAT, allowNull: true, comment: "Largura em cm" },
+    length: { type: DataTypes.FLOAT, allowNull: true, comment: "Comprimento em cm" },
   },
   { sequelize, tableName: "Lama_Product", timestamps: false }
 );
