@@ -109,6 +109,17 @@ const swaggerDefinition: swaggerJSDoc.SwaggerDefinition = {
           ticket_url: { type: "string" },
         },
       },
+      Promotion: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          discount_percent: { type: "number" },
+          start_date: { type: "string" },
+          end_date: { type: "string" },
+          active: { type: "boolean" },
+        },
+      },
       Error: {
         type: "object",
         properties: {

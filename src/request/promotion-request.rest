@@ -1,0 +1,22 @@
+//criar promoção POST http://localhost:3003/promotion/postpromotion Authorization: token
+{
+    "name": "Natal 2026",
+    "discountPercent": 20,
+    "startDate": "2026-12-10",
+    "endDate": "2026-12-12",
+    "active": true
+}
+
+### //busca a promoção vigente hoje (público, usado pela loja) GET http://localhost:3003/promotion/getactivepromotion
+
+### //lista todas as promoções cadastradas GET http://localhost:3003/promotion/getpromotions Authorization: token
+
+### // editar promoção
+
+PUT http://localhost:3003/promotion/updatepromotion/:id Authorization: token
+
+{
+    "discountPercent": 25
+}
+
+### // deletar promoção DELETE http://localhost:3003/promotion/deletepromotion/:id

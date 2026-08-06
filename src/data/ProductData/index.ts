@@ -4,6 +4,8 @@ import { DataBase } from "../DataBase";
 import { ImageModel, ProductModel, ProductVariationModel, VariationSizeModel } from "../../models/SequelizeModels";
 import { Op } from "sequelize";
 import { AppError } from "../../utils/AppError";
+import { withPromotionalPrice } from "../../utils/price";
+import { PromotionData } from "../PromotionData";
 
 export class ProductData extends DataBase {
 
@@ -27,7 +29,9 @@ export class ProductData extends DataBase {
         offset: (page - 1) * perPage,
       });
       const totalCount = await ProductModel.count({ where: query ? { name: { [Op.like]: `%${query}%` } } : undefined });
-      return { products: result.map((item) => item.toJSON()) as AllProducts[], totalCount };
+      const activePromotion = await new PromotionData().getActivePromotion();
+      const products = result.map((item) => withPromotionalPrice(item.toJSON(), activePromotion)) as AllProducts[];
+      return { products, totalCount };
     }
 
     async getTotalCountAllProducts(query?: string) {
@@ -40,7 +44,8 @@ export class ProductData extends DataBase {
         limit: perPage,
         offset: (page - 1) * perPage,
       });
-      return result.map((item) => item.toJSON()) as AllProducts[];
+      const activePromotion = await new PromotionData().getActivePromotion();
+      return result.map((item) => withPromotionalPrice(item.toJSON(), activePromotion)) as AllProducts[];
     }
 
     async getTotalCountByCategory(category: string) {
@@ -48,7 +53,9 @@ export class ProductData extends DataBase {
     }
 
   async getAllProductById(id: string) {
-    return ProductModel.findAll({ where: { id } });
+    const result = await ProductModel.findAll({ where: { id } });
+    const activePromotion = await new PromotionData().getActivePromotion();
+    return result.map((item) => withPromotionalPrice(item.toJSON(), activePromotion));
   }
 
   async getProductFullDetails(id: string) {
@@ -56,6 +63,7 @@ export class ProductData extends DataBase {
     if (!product) {
       throw new AppError("Produto não encontrado", 404);
     }
+    const activePromotion = await new PromotionData().getActivePromotion();
     const mainImages = await ImageModel.findAll({
       attributes: ["id", "photos"],
       where: { product_id: id, variation_id: null },
@@ -72,12 +80,12 @@ export class ProductData extends DataBase {
           id: variation.id,
           name: variation.name,
           images: images.map((item) => item.toJSON()),
-          sizes: sizes.map((item) => item.toJSON()),
+          sizes: sizes.map((item) => withPromotionalPrice(item.toJSON(), activePromotion)),
         };
       })
     );
     return {
-      ...product.toJSON(),
+      ...withPromotionalPrice(product.toJSON(), activePromotion),
       images: mainImages.map((item) => item.toJSON()),
       variations: variationsWithDetails,
     };

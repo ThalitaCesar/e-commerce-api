@@ -10,6 +10,7 @@ export type AuthenticationData = {
   name: string;
   description: string;
   price:string;
+  promotionalPrice: string | null;
   created: string;
   category: string;
   folder: string;
@@ -31,6 +32,7 @@ export type AllVariationSizes = {
   variation_id: string;
   size: string;
   price: string;
+  promotionalPrice: string | null;
   quantity: number;
 }
 

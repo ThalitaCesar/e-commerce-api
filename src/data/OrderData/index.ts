@@ -3,6 +3,8 @@ import { AllOrderByUser } from "../../types/types";
 import { DataBase } from "../DataBase";
 import { OrderModel, ProductModel, ProductVariationModel, VariationSizeModel } from "../../models/SequelizeModels";
 import { AppError } from "../../utils/AppError";
+import { applyDiscountToPrice } from "../../utils/price";
+import { PromotionData } from "../PromotionData";
 
 export class OrderData extends DataBase {
 
@@ -50,6 +52,11 @@ export class OrderData extends DataBase {
         price = variationSize.price;
         variationName = variation.name;
         variationSizeId = variationSize.id;
+      }
+
+      const activePromotion = await new PromotionData().getActivePromotion(t);
+      if (activePromotion) {
+        price = applyDiscountToPrice(price, activePromotion.discount_percent);
       }
 
       await OrderModel.create(

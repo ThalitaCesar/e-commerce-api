@@ -250,6 +250,41 @@ PaymentModel.init(
   { sequelize, tableName: "Lama_Payment", timestamps: false }
 );
 
+interface PromotionAttributes {
+  id: string;
+  name: string;
+  discount_percent: number;
+  start_date: string;
+  end_date: string;
+  active: boolean;
+}
+
+interface PromotionCreationAttributes extends Optional<PromotionAttributes, "id" | "active"> {}
+
+class PromotionModel
+  extends Model<PromotionAttributes, PromotionCreationAttributes>
+  implements PromotionAttributes
+{
+  public id!: string;
+  public name!: string;
+  public discount_percent!: number;
+  public start_date!: string;
+  public end_date!: string;
+  public active!: boolean;
+}
+
+PromotionModel.init(
+  {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    discount_percent: { type: DataTypes.FLOAT, allowNull: false },
+    start_date: { type: DataTypes.DATEONLY, allowNull: false },
+    end_date: { type: DataTypes.DATEONLY, allowNull: false },
+    active: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+  },
+  { sequelize, tableName: "Lama_Promotion", timestamps: false }
+);
+
 interface AddressAttributes {
   id: string;
   cep: string;
@@ -300,4 +335,5 @@ export {
   OrderModel,
   AddressModel,
   PaymentModel,
+  PromotionModel,
 };

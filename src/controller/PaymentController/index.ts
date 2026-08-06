@@ -9,6 +9,7 @@ import { MercadoPagoService } from "../../services/MercadoPagoService";
 import { AppError } from "../../utils/AppError";
 import { authenticate } from "../../middlewares/authMiddleware";
 import { createPaymentSchema } from "../../validators/paymentValidator";
+import { parsePrice } from "../../utils/price";
 
 const APPROVED_ORDER_STATUSES = ["approved", "authorized"];
 const FAILED_ORDER_STATUSES = ["rejected", "cancelled"];
@@ -40,7 +41,7 @@ export class PaymentController {
       }
 
       const validated = createPaymentSchema.parse(req.body);
-      const amount = parseFloat(order.price);
+      const amount = parsePrice(order.price);
       if (!amount || amount <= 0) {
         throw new AppError("Valor do pedido inválido", 422);
       }
