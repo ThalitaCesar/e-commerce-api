@@ -17,11 +17,10 @@ export class OrderController {
       const validated = createOrderSchema.parse(req.body);
       const newOrder = new Order(
         id,
-        validated.name,
-        validated.folder,
-        validated.size,
-        validated.price,
-        req.user!.id
+        validated.productId,
+        req.user!.id,
+        validated.quantity,
+        validated.variationSizeId,
       );
       const orderdata = new OrderData();
       const result = await orderdata.createOrder(newOrder);
@@ -127,16 +126,16 @@ orderRouter.get('/getorderbyuser/:id', authenticate, requireSelfOrAdmin((req) =>
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, folder, size, price]
+ *             required: [productId]
  *             properties:
- *               name:
+ *               productId:
  *                 type: string
- *               folder:
+ *               variationSizeId:
  *                 type: string
- *               size:
- *                 type: string
- *               price:
- *                 type: string
+ *                 description: Obrigatório quando o produto possui variações/tamanhos cadastrados
+ *               quantity:
+ *                 type: integer
+ *                 default: 1
  *     responses:
  *       202:
  *         description: Pedido criado com sucesso
@@ -144,6 +143,12 @@ orderRouter.get('/getorderbyuser/:id', authenticate, requireSelfOrAdmin((req) =>
  *         description: Erro de validação
  *       401:
  *         description: Token não informado ou inválido
+ *       404:
+ *         description: Produto ou variação/tamanho não encontrado
+ *       409:
+ *         description: Estoque insuficiente
+ *       422:
+ *         description: Variação/tamanho obrigatório ou inválido para este produto
  *       500:
  *         description: Erro interno
  */

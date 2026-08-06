@@ -8,26 +8,42 @@
 }
 
 
-### //imagem POST http://localhost:3003/product/postimage/:id
+### //imagem principal do produto POST http://localhost:3003/product/postimage/:id
 
 {
     "photos": "https://img.ltwebstatic.com/images3_pi/2021/12/10/1639122398d26d50b063582096773d92621b343ebc.webp"
 }
 
-### //tamanho POST http://localhost:3003/product/postsize/:id
+### //variação (cor/estampa/tamanho) do produto POST http://localhost:3003/product/postvariation/:id
 
-{"sizes": "TAMANHO ÚNICO"}
+{"name": "Azul"}
 
+### //imagem de uma variação POST http://localhost:3003/product/postimage/:id
 
-### //busca produtos GET http://localhost:3003/product/products 
+{
+    "photos": "https://img.ltwebstatic.com/images3_pi/2021/12/10/1639122398d26d50b063582096773d92621b343ebc.webp",
+    "variationId": "<id da variação>"
+}
+
+### //tamanho + preço + estoque de uma variação POST http://localhost:3003/product/postvariationsize/:id
+
+{"size": "P", "price": "39,95", "quantity": 3}
+
+### //busca produtos GET http://localhost:3003/product/products
 
 ### //busca produto por categoria GET http://localhost:3003/product//getproducts/:category
 
 ### //busca produtos por id GET http://localhost:3003/product/product/:id
 
-### //busca imagens por id do produto  GET http://localhost:3003/product/getAllImagesByProduct/:id
+### //busca produto completo (imagens, variações, tamanhos e estoque) GET http://localhost:3003/product/getfulldetails/:id
 
-### //busca sizes por id do produto GET http://localhost:3003/product/getAllSizesByProduct/:id
+### //busca imagens principais por id do produto  GET http://localhost:3003/product/getAllImagesByProduct/:id
+
+### //busca imagens por id da variação GET http://localhost:3003/product/getimagesbyvariation/:id
+
+### //busca variações por id do produto GET http://localhost:3003/product/getvariationsbyproduct/:id
+
+### //busca tamanhos/estoque por id da variação GET http://localhost:3003/product/getsizesbyvariation/:id
 
 
 ### // editar produto
@@ -42,6 +58,7 @@ PUT http://localhost:3003/product/updateproduct Authorization: token
         "category": "BA"
     }
 
-### // deletar produto DELETE http://localhost:3003/product/deleteproduct/:id 
+### // deletar produto DELETE http://localhost:3003/product/deleteproduct/:id
 ### // deletar imagem DELETE http://localhost:3003/product/deleteimage/:id
-### // deletar tamanho DELETE http://localhost:3003/product/deletesize/:id
+### // deletar variação DELETE http://localhost:3003/product/deletevariation/:id
+### // deletar tamanho/estoque DELETE http://localhost:3003/product/deletevariationsize/:id

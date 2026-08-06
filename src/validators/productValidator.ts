@@ -17,3 +17,19 @@ export const updateProductSchema = z.object({
   category: z.enum(["FEM", "MASC", "SPORT", "BA", "FOOTWEAR"]).optional(),
   folder: z.string().trim().min(1).optional(),
 });
+
+export const createVariationSchema = z.object({
+  name: z.string().trim().min(1, "Digite um nome para a variação"),
+});
+
+export const createVariationSizeSchema = z.object({
+  size: z.string().trim().min(1, "Digite o tamanho"),
+  price: z.string().trim().min(1, "Digite um preço"),
+  quantity: z.number().int().min(0, "Quantidade não pode ser negativa").default(0),
+});
+
+export const updateVariationSizeSchema = z.object({
+  size: z.string().trim().min(1).optional(),
+  price: z.string().trim().min(1).optional(),
+  quantity: z.number().int().min(0).optional(),
+});

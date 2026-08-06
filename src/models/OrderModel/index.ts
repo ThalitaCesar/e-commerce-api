@@ -1,31 +1,27 @@
 export class Order {
       constructor(
         private id: string,
-        private name: string,
-        private folder: string,
-        private size: string,
-        private price:string,
+        private productId: string,
         private userId: string,
+        private quantity: number,
+        private variationSizeId?: string,
       ) {}
-    
+
       getId() {
         return this.id;
       }
-      getName() {
-        return this.name;
-      }
-      getFolder() {
-        return this.folder;
-      }
-      getSize() {
-        return this.size;
-      }
-      getPrice(){
-        return this.price;
+      getProductId() {
+        return this.productId;
       }
       getUserId() {
         return this.userId;
       }
+      getQuantity() {
+        return this.quantity;
+      }
+      getVariationSizeId() {
+        return this.variationSizeId;
+      }
     }
 
-    
+

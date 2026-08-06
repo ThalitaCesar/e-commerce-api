@@ -50,11 +50,34 @@ const swaggerDefinition: swaggerJSDoc.SwaggerDefinition = {
         type: "object",
         properties: {
           id: { type: "string" },
+          product_id: { type: "string" },
+          variation_size_id: { type: "string", nullable: true },
+          variation_name: { type: "string", nullable: true },
           name: { type: "string" },
           folder: { type: "string" },
           size: { type: "string" },
           price: { type: "string" },
+          quantity: { type: "integer" },
           user_id: { type: "string" },
+          status: { type: "string" },
+        },
+      },
+      Variation: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          product_id: { type: "string" },
+        },
+      },
+      VariationSize: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          variation_id: { type: "string" },
+          size: { type: "string" },
+          price: { type: "string" },
+          quantity: { type: "integer", description: "Quantidade em estoque" },
         },
       },
       Adresses: {

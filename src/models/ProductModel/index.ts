@@ -45,8 +45,9 @@ export enum CATEGORIES {
         private id: string,
         private photos: string,
         private product_id: string,
+        private variation_id?: string,
       ) {}
-    
+
       getId() {
         return this.id;
       }
@@ -56,25 +57,53 @@ export enum CATEGORIES {
       getProductId() {
         return this.product_id;
       }
+      getVariationId() {
+        return this.variation_id;
+      }
     }
 
-    export class Size {
+    export class Variation {
       constructor(
         private id: string,
-        private sizes: string,
+        private name: string,
         private product_id: string,
       ) {}
-    
+
       getId() {
         return this.id;
       }
-      getSizes() {
-        return this.sizes;
+      getName() {
+        return this.name;
       }
       getProductId() {
         return this.product_id;
       }
     }
 
+    export class VariationSize {
+      constructor(
+        private id: string,
+        private variation_id: string,
+        private size: string,
+        private price: string,
+        private quantity: number,
+      ) {}
 
-    
+      getId() {
+        return this.id;
+      }
+      getVariationId() {
+        return this.variation_id;
+      }
+      getSize() {
+        return this.size;
+      }
+      getPrice() {
+        return this.price;
+      }
+      getQuantity() {
+        return this.quantity;
+      }
+    }
+
+

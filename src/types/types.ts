@@ -20,9 +20,18 @@ export type AllImages = {
   photos: string;
 }
 
-export type AllSizes = {
+export type AllVariations = {
   id: string;
-  sizes: string;
+  name: string;
+  product_id: string;
+}
+
+export type AllVariationSizes = {
+  id: string;
+  variation_id: string;
+  size: string;
+  price: string;
+  quantity: number;
 }
 
 
@@ -49,9 +58,14 @@ export type GetAllAdresses ={
 
 export type AllOrderByUser = {
   id: string;
+  productId: string;
+  variationSizeId: string | null;
+  variationName: string | null;
   name: string;
   folder: string;
   size: string;
-  price:string;
+  price: string;
+  quantity: number;
   userId: string;
+  status: string;
 }

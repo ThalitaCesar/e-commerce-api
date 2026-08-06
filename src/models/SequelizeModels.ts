@@ -71,18 +71,46 @@ ProductModel.init(
   { sequelize, tableName: "Lama_Product", timestamps: false }
 );
 
+interface ProductVariationAttributes {
+  id: string;
+  name: string;
+  product_id: string;
+}
+
+interface ProductVariationCreationAttributes extends Optional<ProductVariationAttributes, "id"> {}
+
+class ProductVariationModel
+  extends Model<ProductVariationAttributes, ProductVariationCreationAttributes>
+  implements ProductVariationAttributes
+{
+  public id!: string;
+  public name!: string;
+  public product_id!: string;
+}
+
+ProductVariationModel.init(
+  {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    product_id: { type: DataTypes.STRING, allowNull: false },
+  },
+  { sequelize, tableName: "Lama_ProductVariation", timestamps: false }
+);
+
 interface ImageAttributes {
   id: string;
   photos: string;
   product_id: string;
+  variation_id: string | null;
 }
 
-interface ImageCreationAttributes extends Optional<ImageAttributes, "id"> {}
+interface ImageCreationAttributes extends Optional<ImageAttributes, "id" | "variation_id"> {}
 
 class ImageModel extends Model<ImageAttributes, ImageCreationAttributes> implements ImageAttributes {
   public id!: string;
   public photos!: string;
   public product_id!: string;
+  public variation_id!: string | null;
 }
 
 ImageModel.init(
@@ -90,51 +118,70 @@ ImageModel.init(
     id: { type: DataTypes.STRING, primaryKey: true },
     photos: { type: DataTypes.STRING, allowNull: false },
     product_id: { type: DataTypes.STRING, allowNull: false },
+    variation_id: { type: DataTypes.STRING, allowNull: true },
   },
   { sequelize, tableName: "Lama_Images", timestamps: false }
 );
 
-interface SizeAttributes {
+interface VariationSizeAttributes {
   id: string;
-  sizes: string;
-  product_id: string;
+  variation_id: string;
+  size: string;
+  price: string;
+  quantity: number;
 }
 
-interface SizeCreationAttributes extends Optional<SizeAttributes, "id"> {}
+interface VariationSizeCreationAttributes extends Optional<VariationSizeAttributes, "id" | "quantity"> {}
 
-class SizeModel extends Model<SizeAttributes, SizeCreationAttributes> implements SizeAttributes {
+class VariationSizeModel
+  extends Model<VariationSizeAttributes, VariationSizeCreationAttributes>
+  implements VariationSizeAttributes
+{
   public id!: string;
-  public sizes!: string;
-  public product_id!: string;
+  public variation_id!: string;
+  public size!: string;
+  public price!: string;
+  public quantity!: number;
 }
 
-SizeModel.init(
+VariationSizeModel.init(
   {
     id: { type: DataTypes.STRING, primaryKey: true },
-    sizes: { type: DataTypes.STRING, allowNull: false },
-    product_id: { type: DataTypes.STRING, allowNull: false },
+    variation_id: { type: DataTypes.STRING, allowNull: false },
+    size: { type: DataTypes.STRING, allowNull: false },
+    price: { type: DataTypes.STRING, allowNull: false },
+    quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   },
-  { sequelize, tableName: "Lama_Size", timestamps: false }
+  { sequelize, tableName: "Lama_VariationSize", timestamps: false }
 );
 
 interface OrderAttributes {
   id: string;
+  product_id: string;
+  variation_size_id: string | null;
+  variation_name: string | null;
   name: string;
   folder: string;
   size: string;
   price: string;
+  quantity: number;
   user_id: string;
   status: string;
 }
 
-interface OrderCreationAttributes extends Optional<OrderAttributes, "id" | "status"> {}
+interface OrderCreationAttributes
+  extends Optional<OrderAttributes, "id" | "status" | "variation_size_id" | "variation_name"> {}
 
 class OrderModel extends Model<OrderAttributes, OrderCreationAttributes> implements OrderAttributes {
   public id!: string;
+  public product_id!: string;
+  public variation_size_id!: string | null;
+  public variation_name!: string | null;
   public name!: string;
   public folder!: string;
   public size!: string;
   public price!: string;
+  public quantity!: number;
   public user_id!: string;
   public status!: string;
 }
@@ -142,10 +189,14 @@ class OrderModel extends Model<OrderAttributes, OrderCreationAttributes> impleme
 OrderModel.init(
   {
     id: { type: DataTypes.STRING, primaryKey: true },
+    product_id: { type: DataTypes.STRING, allowNull: false },
+    variation_size_id: { type: DataTypes.STRING, allowNull: true },
+    variation_name: { type: DataTypes.STRING, allowNull: true },
     name: { type: DataTypes.STRING, allowNull: false },
     folder: { type: DataTypes.STRING, allowNull: false },
     size: { type: DataTypes.STRING, allowNull: false },
     price: { type: DataTypes.STRING, allowNull: false },
+    quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     user_id: { type: DataTypes.STRING, allowNull: false },
     status: { type: DataTypes.STRING, allowNull: false, defaultValue: "PENDING_PAYMENT" },
   },
@@ -240,4 +291,13 @@ AddressModel.init(
   { sequelize, tableName: "Lama_Addresses", timestamps: false }
 );
 
-export { UserModel, ProductModel, ImageModel, SizeModel, OrderModel, AddressModel, PaymentModel };
+export {
+  UserModel,
+  ProductModel,
+  ImageModel,
+  ProductVariationModel,
+  VariationSizeModel,
+  OrderModel,
+  AddressModel,
+  PaymentModel,
+};
